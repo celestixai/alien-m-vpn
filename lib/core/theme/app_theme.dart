@@ -9,7 +9,7 @@ class AppTheme {
   final String fontFamily;
 
   ThemeData lightTheme(ColorScheme? lightColorScheme) {
-    final ColorScheme scheme = lightColorScheme ?? ColorScheme.fromSeed(seedColor: const Color(0xFF293CA0));
+    final ColorScheme scheme = lightColorScheme ?? ColorScheme.fromSeed(seedColor: const Color(0xFF6AD0FF));
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
@@ -19,12 +19,16 @@ class AppTheme {
   }
 
   ThemeData darkTheme(ColorScheme? darkColorScheme) {
-    final ColorScheme scheme =
-        darkColorScheme ?? ColorScheme.fromSeed(seedColor: const Color(0xFF293CA0), brightness: Brightness.dark);
+    final ColorScheme scheme = darkColorScheme ??
+        ColorScheme.fromSeed(seedColor: const Color(0xFF6AD0FF), brightness: Brightness.dark).copyWith(
+          secondary: const Color(0xFF9F7FFF),
+          tertiary: const Color(0xFF9F7FFF),
+          surface: const Color(0xFF0D0D18),
+        );
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
-      scaffoldBackgroundColor: mode.trueBlack ? Colors.black : scheme.background,
+      scaffoldBackgroundColor: mode.trueBlack ? Colors.black : const Color(0xFF06060E),
       fontFamily: fontFamily,
       extensions: const <ThemeExtension<dynamic>>{ConnectionButtonTheme.light},
     );
