@@ -52,7 +52,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
     final email = _email.text.trim();
     final code = _invite.text.trim();
     if (email.isEmpty || code.isEmpty) {
-      setState(() => _error = "Введите email и инвайт-код");
+      setState(() => _error = "Enter your email and invite code");
       return;
     }
     setState(() {
@@ -67,10 +67,10 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
       } else if (r.statusCode == 200 && m["status"] == "ok") {
         await _activate(m["sub_url"]?.toString() ?? "");
       } else {
-        setState(() => _error = m["message"]?.toString() ?? "Ошибка регистрации");
+        setState(() => _error = m["message"]?.toString() ?? "Registration error");
       }
     } catch (_) {
-      setState(() => _error = "Нет связи с сервером");
+      setState(() => _error = "No connection to the server");
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -79,7 +79,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
   Future<void> _verify() async {
     final v = _vcode.text.trim();
     if (v.isEmpty) {
-      setState(() => _error = "Введите код из письма");
+      setState(() => _error = "Enter the code from your email");
       return;
     }
     setState(() {
@@ -92,10 +92,10 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
       if (r.statusCode == 200 && m["status"] == "ok") {
         await _activate(m["sub_url"]?.toString() ?? "");
       } else {
-        setState(() => _error = m["message"]?.toString() ?? "Неверный код");
+        setState(() => _error = m["message"]?.toString() ?? "Invalid code");
       }
     } catch (_) {
-      setState(() => _error = "Нет связи с сервером");
+      setState(() => _error = "No connection to the server");
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -134,7 +134,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    _codeSent ? "Введите код из письма" : "Регистрация по приглашению",
+                    _codeSent ? "Enter the code from your email" : "Invite-only registration",
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: _muted, fontSize: 14),
                   ),
@@ -154,20 +154,20 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
                   if (!_codeSent) ...[
                     _field(_email, "Email", TextInputType.emailAddress),
                     const SizedBox(height: 12),
-                    _field(_invite, "Инвайт-код", TextInputType.text),
+                    _field(_invite, "Invite code", TextInputType.text),
                     const SizedBox(height: 20),
-                    _button("Получить код", _register),
+                    _button("Get code", _register),
                   ] else ...[
-                    _field(_vcode, "Код из письма", TextInputType.number),
+                    _field(_vcode, "Code from email", TextInputType.number),
                     const SizedBox(height: 20),
-                    _button("Подтвердить и войти", _verify),
+                    _button("Confirm & sign in", _verify),
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: _loading ? null : () => setState(() {
                         _codeSent = false;
                         _error = null;
                       }),
-                      child: const Text("← Назад", style: TextStyle(color: _cyan)),
+                      child: const Text("← Back", style: TextStyle(color: _cyan)),
                     ),
                   ],
                 ],

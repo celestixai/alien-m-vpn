@@ -197,7 +197,7 @@ class SettingsPage extends HookConsumerWidget {
           ],
           Material(
             child: ListTile(
-              title: const Text("Выйти"),
+              title: const Text("Log out"),
               textColor: const Color(0xFFF3B3B3),
               leading: const Icon(Icons.logout_rounded, color: Color(0xFFF3B3B3)),
               onTap: () async {
