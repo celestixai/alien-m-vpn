@@ -43,6 +43,7 @@ class PlatformSettingsHandler : FlutterPlugin, MethodChannel.MethodCallHandler, 
             RequestIgnoreBatteryOptimizations("request_ignore_battery_optimizations"),
             GetInstalledPackages("get_installed_packages"),
             GetPackagesIcon("get_package_icon"),
+            OpenVpnSettings("open_vpn_settings"),
         }
     }
 
@@ -181,6 +182,28 @@ class PlatformSettingsHandler : FlutterPlugin, MethodChannel.MethodCallHandler, 
                         Base64.encodeToString(byteArrayOutputStream.toByteArray(), Base64.NO_WRAP)
                     success(base64)
                 }
+            }
+
+            Trigger.OpenVpnSettings.method -> {
+                // Opens Android's system VPN settings, where the user enables
+                // "Always-on VPN" + "Block connections without VPN" (the OS-level
+                // kill switch). Apps cannot toggle these programmatically.
+                val ctx = activity ?: Application.application
+                var opened = false
+                for (action in listOf(
+                    "android.net.vpn.SETTINGS",
+                    android.provider.Settings.ACTION_SETTINGS
+                )) {
+                    try {
+                        ctx.startActivity(
+                            Intent(action).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        )
+                        opened = true
+                        break
+                    } catch (_: Throwable) {
+                    }
+                }
+                result.success(opened)
             }
 
             else -> result.notImplemented()
