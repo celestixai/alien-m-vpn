@@ -181,7 +181,10 @@ class ConnectionButton extends HookConsumerWidget {
         AsyncData(value: _) => true,
         _ => false,
       },
-      useImage: today.day >= 19 && today.day <= 23 && today.month == 3,
+      // alien-m: always show the alien artwork on the connect button
+      // (upstream gated this to Norouz, Mar 19-23, which left a flat-tinted
+      // logo.svg square the rest of the year).
+      useImage: true,
       secureLabel: secureLabel,
     );
   }
