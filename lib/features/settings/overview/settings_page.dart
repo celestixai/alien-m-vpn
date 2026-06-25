@@ -5,6 +5,7 @@ import 'package:hiddify/core/localization/translations.dart';
 import 'package:hiddify/core/router/dialog/dialog_notifier.dart';
 import 'package:hiddify/core/preferences/general_preferences.dart';
 import 'package:hiddify/core/router/go_router/helper/active_breakpoint_notifier.dart';
+import 'package:hiddify/features/connection/notifier/connection_notifier.dart';
 import 'package:hiddify/features/settings/notifier/config_option/config_option_notifier.dart';
 import 'package:hiddify/features/settings/notifier/reset_tunnel/reset_tunnel_notifier.dart';
 import 'package:hiddify/utils/utils.dart';
@@ -200,6 +201,10 @@ class SettingsPage extends HookConsumerWidget {
               textColor: const Color(0xFFF3B3B3),
               leading: const Icon(Icons.logout_rounded, color: Color(0xFFF3B3B3)),
               onTap: () async {
+                // disconnect the tunnel before logging out
+                try {
+                  await ref.read(connectionNotifierProvider.notifier).abortConnection();
+                } catch (_) {}
                 await ref.read(Preferences.registered.notifier).update(false);
                 if (context.mounted) context.go('/register');
               },
