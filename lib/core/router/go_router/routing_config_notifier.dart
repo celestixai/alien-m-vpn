@@ -7,6 +7,7 @@ import 'package:hiddify/core/router/go_router/helper/active_breakpoint_notifier.
 import 'package:hiddify/core/router/go_router/helper/custom_transition.dart';
 import 'package:hiddify/core/router/go_router/refresh_listenable.dart';
 import 'package:hiddify/features/about/widget/about_page.dart';
+import 'package:hiddify/features/auth/registration_page.dart';
 import 'package:hiddify/features/home/widget/home_page.dart';
 import 'package:hiddify/features/intro/widget/intro_page.dart';
 import 'package:hiddify/features/log/overview/logs_page.dart';
@@ -78,7 +79,10 @@ class RoutingConfigNotifier extends _$RoutingConfigNotifier {
 
         if (!introCompleted) {
           return url != null ? '/intro?url=$url' : '/intro';
-        } else if (isIntro) {
+        } else if (!ref.read(Preferences.registered)) {
+          // Registration gate: user must register before using the app
+          return state.matchedLocation == '/register' ? null : '/register';
+        } else if (isIntro || state.matchedLocation == '/register') {
           if (url != null)
             WidgetsBinding.instance.addPostFrameCallback(
               (_) => ref.read(bottomSheetsNotifierProvider.notifier).showAddProfile(url: url),
@@ -247,6 +251,7 @@ class RoutingConfigNotifier extends _$RoutingConfigNotifier {
           ],
         ),
         GoRoute(name: 'intro', path: '/intro', builder: (_, _) => const IntroPage()),
+        GoRoute(name: 'register', path: '/register', builder: (_, _) => const RegistrationPage()),
       ],
     );
   }

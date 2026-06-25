@@ -23,6 +23,9 @@ abstract class Preferences {
     overrideValue: _debugIntroPage && kDebugMode ? false : null,
   );
 
+  // alien-m: user must register (email + invite + email code) before using the app
+  static final registered = PreferencesNotifier.create("registered", false);
+
   // Null means that auto selection has not been performed yet.
   static final autoAppsSelectionRegion = PreferencesNotifier.create<Region?, String?>(
     "auto_apps_selection_region",
