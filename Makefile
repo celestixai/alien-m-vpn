@@ -52,7 +52,10 @@ LIB_NAME=hiddify-core
 ifeq ($(CHANNEL),prod)
 	CORE_URL=https://github.com/hiddify/hiddify-next-core/releases/download/v$(core.version)
 else
-	CORE_URL=https://github.com/hiddify/hiddify-next-core/releases/download/draft
+	# alien-m: pin core to the release the app bindings target (was: draft).
+	# Moving "draft" core is ABI-incompatible with this release tag and crashes
+	# the gomobile bridge (PlatformInterface, "Unknown reference") when starting tun.
+	CORE_URL=https://github.com/hiddify/hiddify-next-core/releases/download/v$(core.version)
 endif
 
 ifeq ($(CHANNEL),prod)
