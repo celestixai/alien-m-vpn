@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:hiddify/core/haptic/haptic_service.dart';
@@ -55,15 +56,73 @@ class ConnectionNotifier extends _$ConnectionNotifier with AppLogger {
     });
     ref.watch(coreRestartSignalProvider);
 
+    ref.onDispose(_cancelAutoReconnect);
+
     yield* _connectionRepo.watchConnectionStatus().doOnData((event) {
       if (event case Disconnected(connectionFailure: final _?) when PlatformUtils.isDesktop) {
         ref.read(Preferences.startedByUser.notifier).update(false);
+      }
+      // alien-m: auto-reconnect on mobile after an unexpected drop (core panic,
+      // network switch, or a brief server restart) while the user still wants
+      // the VPN on. Desktop keeps its original behaviour above.
+      if (Platform.isAndroid || Platform.isIOS) {
+        if (event is Connected) {
+          _autoReconnectAttempts = 0;
+          _cancelAutoReconnect();
+        } else if (event is Disconnected &&
+            event.connectionFailure != null &&
+            ref.read(Preferences.startedByUser)) {
+          _scheduleAutoReconnect();
+        }
       }
       loggy.info("connection status: ${event.format()}");
     });
   }
 
   ConnectionRepository get _connectionRepo => ref.read(connectionRepositoryProvider);
+
+  // alien-m auto-reconnect ----------------------------------------------------
+  // The upstream fork only reconnects when the active profile changes. If the
+  // tunnel drops on its own (Go core SIGABRT, Wi-Fi<->cellular switch, server
+  // restart) nothing brings it back — the app sits in CONNECTION FAILURE until
+  // the user reopens it. This watchdog reconnects automatically with backoff
+  // for as long as the user intends to be connected (Preferences.startedByUser).
+  Timer? _autoReconnectTimer;
+  int _autoReconnectAttempts = 0;
+
+  void _cancelAutoReconnect() {
+    _autoReconnectTimer?.cancel();
+    _autoReconnectTimer = null;
+  }
+
+  void _scheduleAutoReconnect() {
+    if (_autoReconnectTimer != null) return; // a retry is already pending
+    const backoff = <int>[2, 3, 5, 8, 13, 21, 30]; // seconds, capped at 30
+    final delaySeconds = backoff[_autoReconnectAttempts.clamp(0, backoff.length - 1)];
+    loggy.info("auto-reconnect scheduled in ${delaySeconds}s (attempt ${_autoReconnectAttempts + 1})");
+    _autoReconnectTimer = Timer(Duration(seconds: delaySeconds), () async {
+      _autoReconnectTimer = null;
+      if (!ref.read(Preferences.startedByUser)) return; // user turned it off
+      if (state case AsyncData(value: Connected())) return; // already recovered
+      _autoReconnectAttempts++;
+      await _autoReconnectNow();
+    });
+  }
+
+  Future<void> _autoReconnectNow() async {
+    final activeProfile = await ref.read(activeProfileProvider.future);
+    if (activeProfile == null) return;
+    if (!ref.read(Preferences.startedByUser)) return;
+    if (state case AsyncData(value: Connected())) return;
+    loggy.info("auto-reconnect: connecting (attempt $_autoReconnectAttempts)");
+    // Silent connect: unlike _connect(), do NOT clear startedByUser or pop a
+    // dialog on failure — let the status stream schedule another retry.
+    await _connectionRepo.connect(activeProfile, ref.read(Preferences.disableMemoryLimit)).mapLeft((err) {
+      loggy.warning("auto-reconnect connect failed", err);
+      return err;
+    }).run();
+  }
+  // ---------------------------------------------------------------------------
 
   Future<void> mayConnect() async {
     if (state case AsyncData(:final value)) {

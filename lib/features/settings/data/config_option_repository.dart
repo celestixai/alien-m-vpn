@@ -73,7 +73,9 @@ abstract class ConfigOptions {
 
   static final remoteDnsDomainStrategy = PreferencesNotifier.create<DomainStrategy, String>(
     "remote-dns-domain-strategy",
-    DomainStrategy.auto,
+    // alien-m: default to prefer_ipv4 — cellular here is IPv6-only, and the
+    // upstream "auto" leaves resolution ambiguous which destabilises the tunnel.
+    DomainStrategy.preferIpv4,
     mapFrom: (value) => DomainStrategy.values.firstWhere((e) => e.key == value),
     mapTo: (value) => value.key,
   );
@@ -98,7 +100,8 @@ abstract class ConfigOptions {
 
   static final directDnsDomainStrategy = PreferencesNotifier.create<DomainStrategy, String>(
     "direct-dns-domain-strategy",
-    DomainStrategy.auto,
+    // alien-m: prefer_ipv4 for the same IPv6-only-cellular reason as remote.
+    DomainStrategy.preferIpv4,
     mapFrom: (value) => DomainStrategy.values.firstWhere((e) => e.key == value),
     mapTo: (value) => value.key,
   );
